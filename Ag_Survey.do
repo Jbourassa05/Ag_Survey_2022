@@ -92,9 +92,10 @@ replace TG_Value = 3 if TG ==  "120% CF"
 replace TG_Value = 4 if TG == "140% CF"
 
 * Food_Carbon_Tax --> Simplify to Disagree Neutral Agree 
-	replace Food_Carbon_Tax = 1 if Food_Carbon_Tax == 1 | Food_Carbon_Tax==2
-	replace Food_Carbon_Tax = 2 if Food_Carbon_Tax == 3
-	replace Food_Carbon_Tax = 3 if Food_Carbon_Tax == 4 | Food_Carbon_Tax == 5
+
+replace Food_Carbon_Tax = 1 if Food_Carbon_Tax == 1 | Food_Carbon_Tax==2
+replace Food_Carbon_Tax = 2 if Food_Carbon_Tax == 3
+replace Food_Carbon_Tax = 3 if Food_Carbon_Tax == 4 | Food_Carbon_Tax == 5
 
 * Latitude --> Lat Value (N)
 * Longitude --> Long Value (W) 
@@ -102,12 +103,12 @@ replace TG_Value = 4 if TG == "140% CF"
 * What is your province or territory of residence? 
 * Province --> regroup to Geographical Regions
 
-	g Region = 1 if Province == 2 // BC
-	replace Region = 2 if Province == 1 | Province == 3 |Province == 12 // Prarie
-	replace Region = 3 if Province == 9 // Ontario
-	replace Region = 4 if Province == 11 // Quebec
-	replace Region = 5 if Province == 4| Province == 5 |Province == 7| Province == 10 // Atlantic
-	replace Region = 6 if Province == 6| Province == 8| Province == 13 // Territories
+g Region = 1 if Province == 2 // BC
+replace Region = 2 if Province == 1 | Province == 3 |Province == 12 // Prarie
+replace Region = 3 if Province == 9 // Ontario
+replace Region = 4 if Province == 11 // Quebec
+replace Region = 5 if Province == 4| Province == 5 |Province == 7| Province == 10 // Atlantic
+replace Region = 6 if Province == 6| Province == 8| Province == 13 // Territories
 	
 * Age -> 1. 18-34, 2. 35-54, 3. 55+
 
@@ -116,7 +117,11 @@ replace TG_Value = 4 if TG == "140% CF"
 replace Sex = 0 if Sex == 2|Sex ==3 
 
 * What type of community do you live in? 
+
 * Community --> 1.Urban 2.Suburban 3.Rural 4.Other
+
+g Community_City = 1 if Community == 1 | Community == 2
+replace Community_City = 0 if Community_City ==. 
 
 * Including yourself, how many people are in your household? 
 * HH Size = 1, 2, 3, 4, 5, 6, 7 or More
@@ -132,7 +137,7 @@ replace FarmingHH = 0 if FarmingHH == 4 | FarmingHH ==5
 replace FarmingHH = 1 if FarmingHH == 3 
 
 * Income --> Values will be used to identify possible low income households
-* 1. <10,000
+* 1. <10,000 
 * 2. 10,000 --> 19,999
 * 3. 20,000 --> 29,999
 * 4. 30,000 --> 39,999
@@ -168,64 +173,45 @@ replace University = 0 if University ==.
 * 2. Shared
 * 3. Someone else
 
-* Primary Shopping Locations --> First or second choice to ranking questions
+replace PrimaryShopper = 1 if PrimaryShopper == 2
+replace PrimaryShopper = 0 if PrimaryShopper != 1
 
-replace Discount_Retail = 0 if Discount_Retail > 2
-replace Discount_Retail = 1 if Discount_Retail ==1 | Discount_Retail == 2
+* Low Cost Shopper // Store type relitive to Supermarket < 0 == 1 
 
-replace Farmers_Market =0 if Farmers_Market > 2
-replace Farmers_Market = 1 if Farmers_Market ==1 | Farmers_Market == 2
+g Discount_Retail_R = 1 if Discount_Retail-Supermarket < 0
+replace Discount_Retail_R = 0 if Discount_Retail_R ==. 
 
-replace Supermarket = 0 if Supermarket > 2
-replace Supermarket = 1 if Supermarket ==1 | Supermarket == 2
+g Wholesale_R = 1 if Wholesale - Supermarket < 0
+replace Wholesale_R = 0 if Wholesale_R ==. 
 
-replace Specialty =0 if Specialty > 2
-replace Specialty = 1 if Specialty == 1 | Specialty == 2
-	
-replace Supercenter = 0 if Supercenter >2
-replace Supercenter = 1 if Supercenter == 1 | Supercenter == 2
+g Supercenter_R = 1 if Supercenter - Supermarket < 0
+replace Supercenter_R = 0 if Supercenter_R ==. 
 
-replace Wholesale = 0 if Wholesale>2
-replace Wholesale = 1 if Wholesale == 1 | Wholesale == 2
 
-* Low_Cost_Shopping --> Dummy Variable is discount or wholesale retailers are in the top two shopping locations
+* Low_Cost_Shopping --> Values Range O (Primarily at supermarket) - 3 (at all three low cost alternatives)
 
-g Low_Cost_Shopping = 1 if Discount_Retail == 1 | Wholesale == 1
-replace Low_Cost_Shopping = 0 if Low_Cost_Shopping ==.
+g Low_Cost_Shopping = Discount_Retail_R+Wholesale_R+Supercenter_R
+replace Low_Cost_Shopping = 0 if Low_Cost_Shopping ==. 
 
-* Labeling --> Not important (1) to Extremely Important (5) --> converted the three outcomes 
+* Labeling --> Not important (1) to Extremely Important (5) --> Convert to relitive value compared with price, < 0 (less important than price), 0 (as important as price), > 0 (More important than price)
 
 *Environmental sustainability certification 
-replace Label_Env = 0 if Label_Env == 1 // Not Important
-replace Label_Env = 1 if Label_Env == 2 | Label_Env == 3 // Somewhat important
-replace Label_Env = 2 if Label_Env == 4|Label_Env == 5 // Very important
+g Label_Env_R = Label_Env - Label_Cost
 
 * Locally produced certification 
-replace Label_Local = 0 if Label_Local == 1
-replace Label_Local = 1 if Label_Local == 2 | Label_Local == 3
-replace Label_Local = 2 if Label_Local == 4| Label_Local == 5
+g Label_Local_R = Label_Local - Label_Cost
 
 * Fair-trade certification 
-replace Label_FT = 0 if Label_FT == 1
-replace Label_FT = 1 if Label_FT == 2 | Label_FT == 3
-replace Label_FT = 2 if Label_FT == 4| Label_FT == 5
+g Label_FT_R = Label_FT - Label_Cost
 
 * Country of origin labelling 
-replace Label_COOL = 0 if Label_COOL == 1
-replace Label_COOL = 1 if Label_COOL == 2 | Label_COOL == 3
-replace Label_COOL = 2 if Label_COOL == 4| Label_COOL == 5
-
-* Cost
-replace Label_Cost = 0 if Label_Cost == 1
-replace Label_Cost = 1 if Label_Cost == 2 | Label_Cost == 3
-replace Label_Cost = 2 if Label_Cost == 4| Label_Cost == 5
+g Label_COOL_R = 0 if Label_COOL - Label_Cost
 
 * Farming practices certification (Organic, Biodynamic, Certified Humane, Non-GMO)
-replace Label_Practice = 0 if Label_Practice == 1
-replace Label_Practice = 1 if Label_Practice== 2 | Label_Practice == 3
-replace Label_Practice = 2 if Label_Practice == 4| Label_Practice == 5
+g Label_Practice_R = Label_Practice - LabelCost
 
 * Food Expenditures: During a typical week what is your estimated household grocery bill?
+
 * 1. < 50
 * 2. 50 - 100
 * 3. 100 - 150
@@ -236,100 +222,91 @@ replace Label_Practice = 2 if Label_Practice == 4| Label_Practice == 5
 
 * Survey_Language --> Ignore for now
 
-// Climate Change Policy Questions --> Strongly Disagree (1) to Strongly Agree (5) --> down to 3 
+// Climate Change Policy Questions
 
 * Canada will meet climate commitments with their current plan
-replace CC_Commitments = 0 if CC_Commitments <= 2 // Disagree
-replace CC_Commitments = 1 if CC_Commitments == 3 // Neutral
-replace  CC_Commitments = 2 if CC_Commitments == 4 | CC_Commitments == 5 // Agree
 
-* Canada's climate commitments are too ambitious
-replace CC_Ambitious = 0 if CC_Ambitious <= 2
-replace CC_Ambitious = 1 if CC_Ambitious == 3 
-replace CC_Ambitious = 2 if CC_Ambitious == 4 | CC_Ambitious == 5
+*replace CC_Commitments = 0 if CC_Commitments <= 2 // Disagree
+*replace CC_Commitments = 1 if CC_Commitments == 3 // Neutral
+*replace CC_Commitments = 2 if CC_Commitments == 4 | CC_Commitments == 5 // Agree
+
+* Canada's climate commitments are too ambitious // Reverse Order
+
+replace CC_Ambitious = (-1*CC_Ambitious)+6
+
+*replace CC_Ambitious = 0 if CC_Ambitious <= 2
+*replace CC_Ambitious = 1 if CC_Ambitious == 3 
+*replace CC_Ambitious = 2 if CC_Ambitious == 4 | CC_Ambitious == 5
 
 * Carbon taxes are effective at reducing greenhouse gas emissions 
-replace  CC_CT_Effective = 0 if CC_CT_Effective <= 2
-replace  CC_CT_Effective = 1 if CC_CT_Effective == 3 
-replace  CC_CT_Effective = 2 if CC_CT_Effective == 4 | CC_CT_Effective == 5
+
+*replace  CC_CT_Effective = 0 if CC_CT_Effective <= 2
+*replace  CC_CT_Effective = 1 if CC_CT_Effective == 3 
+*replace  CC_CT_Effective = 2 if CC_CT_Effective == 4 | CC_CT_Effective == 5
 
 * Canada should do more to meet its international commitments under the Paris Climate Agreement 
 
-replace  CC_Do_More = 0 if CC_Do_More <= 2
-replace  CC_Do_More = 1 if CC_Do_More == 3 
-replace  CC_Do_More = 2 if CC_Do_More == 4 | CC_Do_More == 5
+*replace  CC_Do_More = 0 if CC_Do_More <= 2
+*replace  CC_Do_More = 1 if CC_Do_More == 3 
+*replace  CC_Do_More = 2 if CC_Do_More == 4 | CC_Do_More == 5
 
-* The effects of climate change are overstated 
+* The effects of climate change are overstated // Reverse Order
+replace CC_Overstated = (-1*CC_Overstated)+6
 
-replace CC_Overstated = 0 if CC_Overstated <= 2
-replace CC_Overstated = 1 if CC_Overstated == 3 
-replace CC_Overstated = 2 if CC_Overstated == 4 | CC_Overstated == 5
+*replace CC_Overstated = 0 if CC_Overstated <= 2
+*replace CC_Overstated = 1 if CC_Overstated == 3 
+*replace CC_Overstated = 2 if CC_Overstated == 4 | CC_Overstated == 5
 
 * Canada's climate commitments  benefit  the economy. 
 
-replace CC_Benifit = 0 if CC_Benifit <= 2
-replace CC_Benifit = 1 if CC_Benifit == 3 
-replace CC_Benifit = 2 if CC_Benifit == 4 | CC_Benifit == 5
+*replace CC_Benifit = 0 if CC_Benifit <= 2
+*replace CC_Benifit = 1 if CC_Benifit == 3 
+*replace CC_Benifit = 2 if CC_Benifit == 4 | CC_Benifit == 5
 
 
 * Agriculture Policy Questions --> Strongly Disagree (1) to Strongly Agree (5) --> down to 3 
 	
+
 * The federal government has a responsibility to ensure food security within Canada
 
-replace AG_Food_Security = 0 if AG_Food_Security <= 2 // Disagree
-replace AG_Food_Security = 1 if AG_Food_Security == 3 // Neutral
-replace AG_Food_Security = 2 if AG_Food_Security == 4 | AG_Food_Security == 5 // Agree
+*replace AG_Food_Security = 0 if AG_Food_Security <= 2 // Disagree
+*replace AG_Food_Security = 1 if AG_Food_Security == 3 // Neutral
+*replace AG_Food_Security = 2 if AG_Food_Security == 4 | AG_Food_Security == 5 // Agree
 
 * The amount of agricultural land used for non-food production (such as crops grown for ethanol) should be limited
 
-replace AG_Production_Restriction = 0 if AG_Production_Restriction <= 2
-replace AG_Production_Restriction = 1 if AG_Production_Restriction == 3 
-replace AG_Production_Restriction = 2 if AG_Production_Restriction == 4 | AG_Production_Restriction == 5
-
-* The federal government should work to reduce trade barriers for agricultural commodities 
-
-replace Ag_Trade = 0 if Ag_Trade <= 2
-replace Ag_Trade = 1 if Ag_Trade == 3 
-replace Ag_Trade = 2 if Ag_Trade == 4 | Ag_Trade == 5
+*replace AG_Production_Restriction = 0 if AG_Production_Restriction <= 2
+*replace AG_Production_Restriction = 1 if AG_Production_Restriction == 3 
+*replace AG_Production_Restriction = 2 if AG_Production_Restriction == 4 | AG_Production_Restriction == 5
 
 * The federal government should prioritize support for small scale family farms
 
-replace AG_Small_Farm = 0 if AG_Small_Farm <= 2
-replace AG_Small_Farm = 1 if AG_Small_Farm == 3 
-replace AG_Small_Farm = 2 if AG_Small_Farm == 4 | AG_Small_Farm == 5
+*replace AG_Small_Farm = 0 if AG_Small_Farm <= 2
+*replace AG_Small_Farm = 1 if AG_Small_Farm == 3 
+*replace AG_Small_Farm = 2 if AG_Small_Farm == 4 | AG_Small_Farm == 5
 
 * The federal government should not provide financial support to producers/farmers
 
-replace AG_No_Support = 0 if AG_No_Support <= 2
-replace AG_No_Support = 1 if AG_No_Support == 3 
-replace AG_No_Support = 2 if AG_No_Support == 4 | AG_No_Support == 5
+*replace AG_No_Support = 0 if AG_No_Support <= 2
+*replace AG_No_Support = 1 if AG_No_Support == 3 
+*replace AG_No_Support = 2 if AG_No_Support == 4 | AG_No_Support == 5
 
-* The federal government should provide financial support by setting minimum prices that farmers receive for their 
-
-replace Ag_Price_Setting = 0 if Ag_Price_Setting <= 2
-replace Ag_Price_Setting = 1 if Ag_Price_Setting == 3 
-replace Ag_Price_Setting = 2 if Ag_Price_Setting == 4 | Ag_Price_Setting == 5
 
 
 // Agri-Environmental Policy Questions -->  Strongly Disagree (1) to Strongly Agree (5) --> down to 3 
 
 * Agriculture is a major contributor of greenhouse gas emissions in Canada
 
-replace CAG_AG_EM = 0 if CAG_AG_EM <= 2 // Disagree
-replace CAG_AG_EM = 1 if CAG_AG_EM == 3 // Neutral
-replace CAG_AG_EM = 2 if CAG_AG_EM == 4 | CAG_AG_EM == 5 // Agree
+*replace CAG_AG_EM = 0 if CAG_AG_EM <= 2 // Disagree
+*replace CAG_AG_EM = 1 if CAG_AG_EM == 3 // Neutral
+*replace CAG_AG_EM = 2 if CAG_AG_EM == 4 | CAG_AG_EM == 5 // Agree
 
-* The beef industry is a major contributor of greenhouse gas emissions in Canada 
-
-replace CAG_Beef_EM = 0 if CAG_Beef_EM <= 2
-replace CAG_Beef_EM = 1 if CAG_Beef_EM == 3 
-replace CAG_Beef_EM = 2 if CAG_Beef_EM == 4 | CAG_Beef_EM == 5
 
 * The federal government should implement production controls (i.e., by limiting total output) for agricultural products with large carbon footprints
 
-replace CAG_Limits = 0 if CAG_Limits <= 2
-replace CAG_Limits = 1 if CAG_Limits == 3 
-replace CAG_Limits = 2 if CAG_Limits == 4 | CAG_Limits == 5
+*replace CAG_Limits = 0 if CAG_Limits <= 2
+*replace CAG_Limits = 1 if CAG_Limits == 3 
+*replace CAG_Limits = 2 if CAG_Limits == 4 | CAG_Limits == 5
 
 * Emissions from agricultural production should be exempt from the federal carbon tax
 
@@ -359,24 +336,13 @@ replace CAG_CFL = 2 if CAG_CFL == 4 | CAG_CFL == 5
 replace Level_Gov_Ag = 3 if Level_Gov_Ag == 4
 replace Level_Gov_Ag = 4 if Level_Gov_Ag == 5 
 
-// General Policy Importance Not Important (1) --> Extremely Important (5) --> Convert to 3 levels
+// Ag and Climate Policy Relitive to fiscal Policy: Negitive Value = less important, 0 = as important, Positive = More Important
 
 * Environment & Climate Change 
-replace PI_Climate = 0 if PI_Climate == 1 // Not Important
-replace PI_Climate = 1 if PI_Climate == 2 | PI_Climate == 3 // Somewhat important
-replace PI_Climate = 2 if PI_Climate == 4| PI_Climate == 5 // Very important
-* Government Spending & Taxation 
-replace PI_Spending = 0 if PI_Spending == 1 
-replace PI_Spending = 1 if PI_Spending == 2 | PI_Spending == 3 
-replace PI_Spending = 2 if PI_Spending == 4| PI_Spending == 5 
-* International Trade & International Relations 
-replace PI_External = 0 if PI_External == 1 
-replace PI_External = 1 if PI_External == 2 | PI_External == 3 
-replace PI_External = 2 if PI_External == 4| PI_External == 5
+replace PI_Climate = PI_Climate- PI_Spending
+
 * Agriculture & Food policy 
-replace PI_Ag = 0 if PI_Ag == 1 
-replace PI_Ag = 1 if PI_Ag == 2 | PI_Ag == 3 
-replace PI_Ag = 2 if PI_Ag == 4| PI_Ag == 5
+replace PI_Ag = PI_Ag - PI_Spending
 
 * If a federal election were to be held tomorrow, which party would you vote for?
 
